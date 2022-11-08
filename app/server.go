@@ -76,6 +76,8 @@ func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			srv.handleDirCreate(w, r)
 		case "rm":
 			srv.handleDelete(w, r)
+		case "mv":
+			srv.handleRename(w, r)
 		default:
 			http.Error(w, fmt.Sprintf("unkown action '%s'", r.FormValue("action")), http.StatusBadRequest)
 		}

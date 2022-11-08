@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -20,10 +21,10 @@ func (srv *Server) handleDelete(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if r.FormValue("recursive") == "1" {
 		log.Println("RMRF:", newPath)
-		err = os.RemoveAll(newPath)
+		err = os.RemoveAll(filepath.FromSlash(newPath))
 	} else {
 		log.Println("RM:", newPath)
-		err = os.Remove(newPath)
+		err = os.Remove(filepath.FromSlash(newPath))
 	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

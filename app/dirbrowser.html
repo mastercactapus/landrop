@@ -101,11 +101,28 @@
               </button>
               <form method="post" id="rename-file-{{$idx}}" class="modal">
                 <input type="hidden" name="action" value="mv" />
+                <input type="hidden" name="name" value="{{.Name}}" />
                 <h5>Rename {{.Name}}?</h5>
+                {{if not .IsDir}}
                 <div class="field label border">
-                  <input type="text" name="name" value="{{.Name}}" />
+                  <nav>
+                    <div class="max">
+                      <h6>Overwrite</h6>
+                      <div>Replace any existing file that exists.</div>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" name="overwrite" value="1" />
+                      <span></span>
+                    </label>
+                  </nav>
+                </div>
+                {{end}}
+
+                <div class="field label border">
+                  <input type="text" name="newName" value="{{.Name}}" />
                   <label>New Name</label>
                 </div>
+
                 <nav class="right-align">
                   <button
                     type="reset"
