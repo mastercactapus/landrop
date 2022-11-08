@@ -54,6 +54,10 @@
             >{{else}}&nbsp;/&nbsp;{{end}}
           </h5>
           {{if .Server.Writable}}
+          <button data-ui="#upload-fallback" class="circle transparent">
+            <i>upload</i>
+          </button>
+
           <button data-ui="#create-folder" class="circle transparent">
             <i>create_new_folder</i>
           </button>
@@ -177,6 +181,30 @@
           {{end}}
         </tbody>
       </table>
+
+      <form
+        method="post"
+        id="upload-fallback"
+        action="{{.URL}}?action=upload&redirect=1"
+        class="modal"
+        enctype="multipart/form-data"
+      >
+        <h5>Upload File</h5>
+
+        <div class="field label border">
+          <input type="text" />
+          <input type="file" name="file" multiple />
+          <label>File(s)</label>
+          <span class="helper">Select one or more files to upload.</span>
+        </div>
+
+        <nav class="right-align">
+          <button type="reset" data-ui="#upload-fallback" class="border">
+            Cancel
+          </button>
+          <button type="submit">Confirm</button>
+        </nav>
+      </form>
 
       <form method="post" id="create-folder" class="modal">
         <input type="hidden" name="action" value="mkdir" />

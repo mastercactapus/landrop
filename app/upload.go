@@ -25,9 +25,9 @@ func (srv *Server) handleUpload(w http.ResponseWriter, r *http.Request) {
 		if err == io.EOF {
 			break
 		}
-		newPath := path.Join(srv.diskPath(r), part.FileName())
+
 		// must be descendant of current path
-		if !strings.HasPrefix(newPath, srv.diskPath(r)) {
+		if !strings.HasPrefix(path.Join(srv.diskPath(r), part.FileName()), srv.diskPath(r)) {
 			http.Error(w, "Invalid filename/path.", http.StatusBadRequest)
 			return
 		}
@@ -38,16 +38,41 @@ func (srv *Server) handleUpload(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	if r.URL.Query().Get("redirect") == "1" {
+		http.Redirect(w, r, srv.fsPath(r), http.StatusFound)
+	}
+}
+
+func findNextName(name string) (string, error) {
+	if _, err := os.Stat(filepath.FromSlash(name)); err != nil {
+		return name, nil
+	}
+
+	ext := filepath.Ext(name)
+	base := strings.TrimSuffix(name, ext)
+
+	for n := 1; n < 1000; n++ {
+		newName := fmt.Sprintf("%s (%d)%s", base, n, ext)
+		if _, err := os.Stat(filepath.FromSlash(newName)); err != nil {
+			return newName, nil
+		}
+	}
+
+	return "", fmt.Errorf("too many files with the same name")
 }
 
 func (srv *Server) saveFile(dest string, part *multipart.Part) error {
-	fullPath := filepath.Join(dest, part.FileName())
+	newPath, err := findNextName(path.Join(dest, part.FileName()))
+	if err != nil {
+		return fmt.Errorf("find next name: %v", err)
+	}
 
-	fd, err := os.Create(fullPath)
+	fd, err := os.Create(filepath.FromSlash(newPath))
 	if err != nil {
 		return fmt.Errorf("create file: %w", err)
 	}
-	log.Println("UPLOAD:", fullPath)
+	log.Println("UPLOAD:", newPath)
 
 	_, err = io.Copy(fd, part)
 	if err != nil {
