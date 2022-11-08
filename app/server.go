@@ -66,7 +66,7 @@ func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// handle separately because we need to use MultipartReader
-		if r.URL.Query().Get("upload") == "1" {
+		if r.URL.Query().Get("action") == "upload" {
 			srv.handleUpload(w, r)
 			return
 		}

@@ -197,7 +197,7 @@
       {{if .Server.Writable}}
       <script>
         const b = new Dropzone(document.body, {
-          url: window.location.pathname,
+          url: window.location.pathname + "?action=upload",
           previewsContainer: ".dropzone-previews",
           // You probably don't want the whole body
           // to be clickable to select files
