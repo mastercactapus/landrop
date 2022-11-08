@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -18,8 +19,10 @@ func (srv *Server) handleDelete(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	if r.FormValue("recursive") == "1" {
+		log.Println("RMRF:", newPath)
 		err = os.RemoveAll(newPath)
 	} else {
+		log.Println("RM:", newPath)
 		err = os.Remove(newPath)
 	}
 	if err != nil {
