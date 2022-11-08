@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{.Server.Name}} - /{{.URL}}</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/beercss@2.3.0/dist/cdn/beer.min.css"
+      integrity="sha256-LEWxxReHz5i16Q3TaEYqKO2FS98v8DtWYazNEKhu/S4="
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/beercss@2.3.0/dist/cdn/beer.min.js"
+      integrity="sha256-xzR/l8vcDeDcQ5fylcz9H0gl3JE31ho4nddII0gSMYw="
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@0.0.10/dist/cdn/material-dynamic-colors.min.js"
+      integrity="sha256-z92LW2bxx5MARSvtWPwx5lbA23+ckWW6MX2EBYt0qlU="
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"
+      integrity="sha256-wsRcKN1mELz4+p12F311IC51ci926nHXuOTs1I4CLhA="
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css"
+      integrity="sha256-8CcIDH20Vmm9W1y6dBGoYQESBHcFuwr0FzVqPOg7G+g="
+      crossorigin="anonymous"
+    />
+    <style>
+      .link:hover,
+      .link:focus {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="container responsive padding">
+      <header>
+        <nav>
+          <a class="circle transparent" href="/">
+            <i>home</i>
+          </a>
+          <h5 class="max">
+            {{range .Breadcrumbs}}&nbsp;/&nbsp;<a class="link" href="{{.Href}}"
+              >{{.Name}}</a
+            >{{else}}&nbsp;/&nbsp;{{end}}
+          </h5>
+          {{if .Server.Writable}}
+          <button data-ui="#create-folder" class="circle transparent">
+            <i>create_new_folder</i>
+          </button>
+          {{else}} Read-only {{end}}
+        </nav>
+      </header>
+
+      <table class="border">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Size</th>
+            <th>Modified</th>
+            {{if .Server.Writable}}
+            <th>Actions</th>
+            {{end}}
+          </tr>
+        </thead>
+        <tbody>
+          {{range $idx, $f := .Files}}
+          <tr>
+            <td>
+              <a
+                class="link"
+                style="width: 100%; justify-content: left"
+                href="{{.Href}}"
+                ><i class="material-icons">{{if .IsDir}}folder{{end}}</i>&nbsp;
+                {{.Name}}
+
+                <div class="max"></div>
+              </a>
+            </td>
+            <td>{{.Type}}</td>
+            <td>{{if not .IsDir}}{{.Size}}{{end}}</td>
+            <td>{{.Mod}}</td>
+            {{if $.Server.Writable}}
+            <td>
+              <button
+                class="circle transparent"
+                data-ui="#rename-file-{{$idx}}"
+                title="Rename"
+              >
+                <i>edit</i>
+              </button>
+              <form method="post" id="rename-file-{{$idx}}" class="modal">
+                <input type="hidden" name="action" value="mv" />
+                <h5>Rename {{.Name}}?</h5>
+                <div class="field label border">
+                  <input type="text" name="name" value="{{.Name}}" />
+                  <label>New Name</label>
+                </div>
+                <nav class="right-align">
+                  <button
+                    type="reset"
+                    data-ui="#rename-file-{{$idx}}"
+                    class="border"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit">Confirm</button>
+                </nav>
+              </form>
+
+              <button
+                class="circle transparent"
+                data-ui="#delete-file-{{$idx}}"
+                title="Delete"
+              >
+                <i>delete</i>
+              </button>
+              <form method="post" id="delete-file-{{$idx}}" class="modal">
+                <input type="hidden" name="action" value="rm" />
+                <h5>Delete {{.Name}}?</h5>
+                {{if .IsDir}}
+                <div class="field label border">
+                  <nav>
+                    <div class="max">
+                      <h6>Recursive</h6>
+                      <div>Delete any files/directories within this one.</div>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" name="recursive" value="1" />
+                      <span></span>
+                    </label>
+                  </nav>
+                </div>
+                {{end}}
+                <nav class="right-align">
+                  <button
+                    type="reset"
+                    data-ui="#delete-file-{{$idx}}"
+                    class="border"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit">Confirm</button>
+                </nav>
+              </form>
+            </td>
+            {{end}}
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+
+      <form method="post" id="create-folder" class="modal">
+        <input type="hidden" name="action" value="mkdir" />
+        <h5>Create New Folder</h5>
+        <div class="field label border">
+          <input type="text" name="name" />
+          <label>Folder Name</label>
+        </div>
+        <nav class="right-align">
+          <button type="reset" data-ui="#create-folder" class="border">
+            Cancel
+          </button>
+          <button type="submit">Confirm</button>
+        </nav>
+      </form>
+
+      <div class="dropzone-previews"></div>
+      {{if .Server.Writable}}
+      <script>
+        const b = new Dropzone(document.body, {
+          url: window.location.pathname,
+          previewsContainer: ".dropzone-previews",
+          // You probably don't want the whole body
+          // to be clickable to select files
+          clickable: false,
+
+          queuecomplete: function () {
+            window.location.reload();
+          },
+        });
+      </script>
+      {{end}}
+    </main>
+  </body>
+</html>
